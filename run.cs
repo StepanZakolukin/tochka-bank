@@ -3,23 +3,22 @@ using System.Collections.Generic;
 
 class Program
 {
-    private static long Solve(List<string> lines)
+    static long Solve(List<string> lines)
     {
         var burrow = new Maze(lines.ToArray());
         var result = burrow.EnergyToOrganise();
         return result;
     }
 
-    public static void Main()
+    static void Main()
     {
         var lines = new List<string>();
         string line;
-        
-        while (!string.IsNullOrEmpty(line = Console.ReadLine()))
+
+        while ((line = Console.ReadLine()) != null)
             lines.Add(line);
 
         var result = Solve(lines);
-        
         Console.WriteLine(result);
     }
 }

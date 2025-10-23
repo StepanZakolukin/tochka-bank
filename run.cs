@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-public static class Program
+public class Program
 {
     static long Solve(List<string> lines)
     {
@@ -23,9 +23,7 @@ public static class Program
         Console.WriteLine(result);
     }
 
-    #region Методы расширения
-
-    private static int EnergyConsumption(this DwellerType type) => type switch
+    private static int EnergyConsumption(DwellerType type) => type switch
     {
         DwellerType.A => 1,
         DwellerType.B => 10,
@@ -34,7 +32,7 @@ public static class Program
         _ => throw new ArgumentOutOfRangeException()
     };
 
-    private static Location Room(this DwellerType type) => type switch
+    private static Location Room(DwellerType type) => type switch
     {
         DwellerType.A => Location.RoomA,
         DwellerType.B => Location.RoomB,
@@ -43,7 +41,7 @@ public static class Program
         _ => throw new ArgumentOutOfRangeException()
     };
 
-    private static int SequenceCompareTo<T>(this IEnumerable<T> a, IEnumerable<T> b)
+    private static int SequenceCompareTo<T>(IEnumerable<T> a, IEnumerable<T> b)
         where T : IComparable<T>
     {
         using var e1 = a.GetEnumerator();
@@ -59,8 +57,6 @@ public static class Program
             if (cmp != 0) return cmp;
         }
     }
-
-    #endregion
     
     public record struct Dweller(DwellerType Type, int X, int Y) : IComparable<Dweller>
     {
@@ -101,7 +97,7 @@ public static class Program
                 }
                 else
                 {
-                    if (map[2, x] == Type.Room())
+                    if (map[2, x] == Room(Type))
                     {
                         var y = 2;
                         var destY = int.MaxValue;
@@ -137,7 +133,7 @@ public static class Program
         
         private bool IsNecessaryToLeaveTheRoom(IEnumerable<Dweller> dwellers, Location[,] map)
         {
-            if (map[Y, X] != Type.Room()) return true;
+            if (map[Y, X] != Room(Type)) return true;
             
             foreach (var dweller in dwellers)
                 if (dweller.X == X && dweller.Y > Y && dweller.Type != Type)
@@ -244,7 +240,7 @@ public static class Program
                     {
                         var dwellers = state.Dwellers.ToArray();
                         dwellers[i] = currentDweller with { X = move.X, Y = move.Y };
-                        var energy = state.EnergySpent + move.Steps * currentDweller.Type.EnergyConsumption();
+                        var energy = state.EnergySpent + move.Steps * EnergyConsumption(currentDweller.Type);
 
                         if (energy >= energySpent.GetValueOrDefault(dwellers, int.MaxValue)) continue;
                         energySpent[dwellers] = energy;
@@ -280,7 +276,7 @@ public static class Program
     public record struct State(Dweller[] Dwellers, int EnergySpent, int EstimatedRemaining)
         : IComparable<State>
     {
-        public bool IsOrganised(Location[,] map) => Dwellers.All(dweller => map[dweller.Y, dweller.X] == dweller.Type.Room());
+        public bool IsOrganised(Location[,] map) => Dwellers.All(dweller => map[dweller.Y, dweller.X] == Room(dweller.Type));
 
         public static State Create(Dweller[] dwellers, Location[,] map, int energySpent)
         {
@@ -290,7 +286,7 @@ public static class Program
             foreach (var dweller in dwellers)
             {
                 var location = map[dweller.Y, dweller.X];
-                if (location == dweller.Type.Room())
+                if (location == Room(dweller.Type))
                 {
                     alreadyInPlace[dweller.Type] = alreadyInPlace.GetValueOrDefault(dweller.Type, 0) + 1;
                     continue;
@@ -306,13 +302,13 @@ public static class Program
                 };
 
                 var distance = Math.Abs(dweller.X - targetX) + Math.Abs(dweller.Y - 2);
-                totalEnergy += distance * dweller.Type.EnergyConsumption();
+                totalEnergy += distance * EnergyConsumption(dweller.Type);
             }
 
             foreach (var type in Enum.GetValues<DwellerType>())
             {
                 var toFill = dwellers.Length / 4 - alreadyInPlace.GetValueOrDefault(type, 0);
-                totalEnergy += toFill * (toFill + 1) / 2 * type.EnergyConsumption();
+                totalEnergy += toFill * (toFill + 1) / 2 * EnergyConsumption(type);
             }
 
             return new State(dwellers, energySpent, totalEnergy);
@@ -323,7 +319,7 @@ public static class Program
             var cmp = (EnergySpent + EstimatedRemaining)
                 .CompareTo(other.EnergySpent + other.EstimatedRemaining);
             if (cmp != 0) return cmp;
-            return Dwellers.SequenceCompareTo(other.Dwellers);
+            return SequenceCompareTo(Dwellers, other.Dwellers);
         }
     }
 }

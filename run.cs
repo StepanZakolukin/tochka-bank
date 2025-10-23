@@ -23,7 +23,7 @@ public class Program
         Console.WriteLine(result);
     }
 
-    private static int EnergyConsumption(DwellerType type) => type switch
+    private static long EnergyConsumption(DwellerType type) => type switch
     {
         DwellerType.A => 1,
         DwellerType.B => 10,
@@ -71,7 +71,7 @@ public class Program
                 if (dweller.X == X && dweller.Y < Y)
                     yield break;
 
-            var stepsToThreshold = Y - 1;
+            long stepsToThreshold = Y - 1;
             foreach (var tuple in PossibleDestinationsFromCorridor(-1, stepsToThreshold, dwellers, map))
                 yield return tuple;
             
@@ -81,7 +81,7 @@ public class Program
 
         private IEnumerable<Move> PossibleDestinationsFromCorridor(
             int direction,
-            int steps,
+            long steps,
             IReadOnlyList<Dweller> dwellers,
             Location[,] map)
         {
@@ -217,21 +217,21 @@ public class Program
             Dwellers = dwellerList.ToArray();
         }
 
-        public int EnergyToOrganise()
+        public long EnergyToOrganise()
         {
             var comparer = new DwellerArrayComparer();
-            var energySpent = new Dictionary<Dweller[], int>(comparer)
+            var energySpent = new Dictionary<Dweller[], long>(comparer)
             {
                 [Dwellers] = 0
             };
-            var queue = new PriorityQueue<State, int>();
+            var queue = new PriorityQueue<State, long>();
             queue.Enqueue(State.Create(Dwellers, Map, 0), 0);
 
             while (queue.TryDequeue(out var state, out _))
             {
                 if (state.IsOrganised(Map)) return state.EnergySpent;
                 
-                if (state.EnergySpent > energySpent.GetValueOrDefault(state.Dwellers, int.MaxValue)) continue;
+                if (state.EnergySpent > energySpent.GetValueOrDefault(state.Dwellers, long.MaxValue)) continue;
 
                 for (var i = 0; i < state.Dwellers.Length; i++)
                 {
@@ -242,7 +242,7 @@ public class Program
                         dwellers[i] = currentDweller with { X = move.X, Y = move.Y };
                         var energy = state.EnergySpent + move.Steps * EnergyConsumption(currentDweller.Type);
 
-                        if (energy >= energySpent.GetValueOrDefault(dwellers, int.MaxValue)) continue;
+                        if (energy >= energySpent.GetValueOrDefault(dwellers, long.MaxValue)) continue;
                         energySpent[dwellers] = energy;
                         var newState = State.Create(dwellers, Map, energy);
                         queue.Enqueue(newState, newState.EnergySpent + newState.EstimatedRemaining);
@@ -271,16 +271,16 @@ public class Program
         }
     }
 
-    public record struct Move(int X, int Y, int Steps);
+    public record struct Move(int X, int Y, long Steps);
 
-    public record struct State(Dweller[] Dwellers, int EnergySpent, int EstimatedRemaining)
+    public record struct State(Dweller[] Dwellers, long EnergySpent, long EstimatedRemaining)
         : IComparable<State>
     {
         public bool IsOrganised(Location[,] map) => Dwellers.All(dweller => map[dweller.Y, dweller.X] == Room(dweller.Type));
 
-        public static State Create(Dweller[] dwellers, Location[,] map, int energySpent)
+        public static State Create(Dweller[] dwellers, Location[,] map, long energySpent)
         {
-            var totalEnergy = 0;
+            var totalEnergy = 0L;
             var alreadyInPlace = new Dictionary<DwellerType, int>();
 
             foreach (var dweller in dwellers)
@@ -301,7 +301,7 @@ public class Program
                     _ => 0
                 };
 
-                var distance = Math.Abs(dweller.X - targetX) + Math.Abs(dweller.Y - 2);
+                long distance = Math.Abs(dweller.X - targetX) + Math.Abs(dweller.Y - 2);
                 totalEnergy += distance * EnergyConsumption(dweller.Type);
             }
 

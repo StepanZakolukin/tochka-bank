@@ -125,27 +125,6 @@ public class Program
         D
     }
 
-    internal static class DwellerTypeExtensions
-    {
-        public static int EnergyConsumption(this DwellerType s) => s switch
-        {
-            DwellerType.A => 1,
-            DwellerType.B => 10,
-            DwellerType.C => 100,
-            DwellerType.D => 1000,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
-        public static Location Room(this DwellerType s) => s switch
-        {
-            DwellerType.A => Location.RoomA,
-            DwellerType.B => Location.RoomB,
-            DwellerType.C => Location.RoomC,
-            DwellerType.D => Location.RoomD,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-    }
-
     public enum Location
     {
         Wall,
@@ -259,26 +238,6 @@ public class Program
 
     public record struct Move(int X, int Y, int Steps);
 
-    internal static class SequenceExtensions
-    {
-        public static int SequenceCompareTo<T>(this IEnumerable<T> a, IEnumerable<T> b)
-            where T : IComparable<T>
-        {
-            using var e1 = a.GetEnumerator();
-            using var e2 = b.GetEnumerator();
-            while (true)
-            {
-                var m1 = e1.MoveNext();
-                var m2 = e2.MoveNext();
-                if (!m1 && !m2) return 0;
-                if (!m1) return -1;
-                if (!m2) return 1;
-                var cmp = e1.Current.CompareTo(e2.Current);
-                if (cmp != 0) return cmp;
-            }
-        }
-    }
-
     public record struct State(Dweller[] Dwellers, int EnergySpent, int EstimatedRemaining)
         : IComparable<State>
     {
@@ -326,6 +285,47 @@ public class Program
                 .CompareTo(other.EnergySpent + other.EstimatedRemaining);
             if (cmp != 0) return cmp;
             return Dwellers.SequenceCompareTo(other.Dwellers);
+        }
+    }
+}
+
+internal static class DwellerTypeExtensions
+{
+    public static int EnergyConsumption(this DwellerType s) => s switch
+    {
+        DwellerType.A => 1,
+        DwellerType.B => 10,
+        DwellerType.C => 100,
+        DwellerType.D => 1000,
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
+    public static Location Room(this DwellerType s) => s switch
+    {
+        DwellerType.A => Location.RoomA,
+        DwellerType.B => Location.RoomB,
+        DwellerType.C => Location.RoomC,
+        DwellerType.D => Location.RoomD,
+        _ => throw new ArgumentOutOfRangeException()
+    };
+}
+
+internal static class SequenceExtensions
+{
+    public static int SequenceCompareTo<T>(this IEnumerable<T> a, IEnumerable<T> b)
+        where T : IComparable<T>
+    {
+        using var e1 = a.GetEnumerator();
+        using var e2 = b.GetEnumerator();
+        while (true)
+        {
+            var m1 = e1.MoveNext();
+            var m2 = e2.MoveNext();
+            if (!m1 && !m2) return 0;
+            if (!m1) return -1;
+            if (!m2) return 1;
+            var cmp = e1.Current.CompareTo(e2.Current);
+            if (cmp != 0) return cmp;
         }
     }
 }

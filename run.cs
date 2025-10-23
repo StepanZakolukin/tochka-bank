@@ -14,9 +14,8 @@ public class Program
     static void Main()
     {
         var lines = new List<string>();
-        string line;
 
-        while ((line = Console.ReadLine()) != null)
+        while (Console.ReadLine() is { } line)
             lines.Add(line);
 
         var result = Solve(lines);

@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-public class Program
+public static class Program
 {
-    private static long Solve(List<string> lines)
+    public static long Solve(List<string> lines)
     {
         var burrow = new Maze(lines.ToArray());
         var result = burrow.EnergyToOrganise();
@@ -300,7 +300,7 @@ public class Program
                     _ => 0
                 };
 
-                long distance = Math.Abs(dweller.X - targetX) + Math.Abs(dweller.Y - 2);
+                long distance = Math.Abs(dweller.X - targetX) + Math.Abs(dweller.Y - 1);
                 totalEnergy += distance * EnergyConsumption(dweller.Type);
             }
 

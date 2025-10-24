@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-public static class Program
+public class Program
 {
-    public static long Solve(List<string> lines)
+    private static long Solve(List<string> lines)
     {
         var burrow = new Maze(lines.ToArray());
         var result = burrow.EnergyToOrganise();
@@ -302,12 +302,6 @@ public static class Program
 
                 long distance = Math.Abs(dweller.X - targetX) + Math.Abs(dweller.Y - 1);
                 totalEnergy += distance * EnergyConsumption(dweller.Type);
-            }
-
-            foreach (var type in Enum.GetValues<DwellerType>())
-            {
-                var toFill = dwellers.Length / 4 - alreadyInPlace.GetValueOrDefault(type, 0);
-                totalEnergy += toFill * (toFill + 1) / 2 * EnergyConsumption(type);
             }
 
             return new State(dwellers, energySpent, totalEnergy);

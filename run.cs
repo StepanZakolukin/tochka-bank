@@ -4,14 +4,14 @@ using System.Collections.Generic;
 
 public class Program
 {
-    static long Solve(List<string> lines)
+    private static long Solve(List<string> lines)
     {
         var burrow = new Maze(lines.ToArray());
         var result = burrow.EnergyToOrganise();
         return result;
     }
 
-    static void Main()
+    public static void Main()
     {
         var lines = new List<string>();
 

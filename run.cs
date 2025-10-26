@@ -4,14 +4,14 @@ using System.Collections.Generic;
 
 public class Program
 {
-    private static long Solve(List<string> lines)
+    static long Solve(List<string> lines)
     {
         var burrow = new Maze(lines.ToArray());
         var result = burrow.EnergyToOrganise();
         return result;
     }
 
-    public static void Main()
+    static void Main()
     {
         var lines = new List<string>();
 
@@ -122,7 +122,7 @@ public class Program
                             y++;
                         }
                         
-                        if (canEnter) yield return new Move(x, destY, steps + destY - 1);
+                        if (canEnter && destY != int.MaxValue) yield return new Move(x, destY, steps + destY - 1);
                     }
                 }
 
@@ -300,8 +300,14 @@ public class Program
                     _ => 0
                 };
 
-                long distance = Math.Abs(dweller.X - targetX) + Math.Abs(dweller.Y - 1);
+                long distance = Math.Abs(dweller.X - targetX) + Math.Abs(dweller.Y - 2);
                 totalEnergy += distance * EnergyConsumption(dweller.Type);
+            }
+
+            foreach (var type in Enum.GetValues<DwellerType>())
+            {
+                var toFill = dwellers.Length / 4 - alreadyInPlace.GetValueOrDefault(type, 0);
+                totalEnergy += toFill * (toFill + 1) / 2 * EnergyConsumption(type);
             }
 
             return new State(dwellers, energySpent, totalEnergy);

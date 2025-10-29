@@ -12,14 +12,19 @@ public class Program
             graph.Connect(edge.Item1, edge.Item2);
 
         var virusPosition = graph.GetNode("a");
-        var gateways = graph.Nodes.Where(node => node.IsGateway()).ToArray();
-        var pathsNumber = PathFinder.FindPaths(virusPosition, gateways).Count();
         
-        yield return DisableCorridor(graph, virusPosition, gateways).ToString();
-        for (var i = 0; i < pathsNumber - 1; i++)
+        while (true)
         {
-            virusPosition = GetNextVirusNode(virusPosition, gateways);
+            var gateways = graph.Nodes.Where(node => node.IsGateway()).ToArray();
+            
+            if (!PathFinder.FindPaths(virusPosition, gateways).Any()) break;
+
             yield return DisableCorridor(graph, virusPosition, gateways).ToString();
+            
+            var gatewaysAfterMove = graph.Nodes.Where(node => node.IsGateway()).ToArray();
+            if (!PathFinder.FindPaths(virusPosition, gatewaysAfterMove).Any()) break;
+            
+            virusPosition = GetNextVirusNode(virusPosition, gatewaysAfterMove);
         }
     }
 

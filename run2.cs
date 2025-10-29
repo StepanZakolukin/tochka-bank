@@ -130,7 +130,7 @@ public class Program
         }
     }
 
-    public record struct Node
+    public record Node
     {
         public string Name { get; }
         private readonly List<Node> _incidentNodes = [];

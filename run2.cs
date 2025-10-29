@@ -12,19 +12,19 @@ public class Program
             graph.Connect(edge.Item1, edge.Item2);
 
         var virusPosition = graph.GetNode("a");
+        var gateways = graph.Nodes.Where(node => node.IsGateway()).ToHashSet();
         
         while (true)
         {
-            var gateways = graph.Nodes.Where(node => node.IsGateway()).ToArray();
-            
-            if (!PathFinder.FindPaths(virusPosition, gateways).Any()) break;
+            var paths = PathFinder.FindPaths(virusPosition, gateways);
+            if (paths.Count == 0) break;
 
-            yield return DisableCorridor(graph, virusPosition, gateways).ToString();
+            yield return DisableCorridor(graph, paths).ToString();
             
-            var gatewaysAfterMove = graph.Nodes.Where(node => node.IsGateway()).ToArray();
-            if (!PathFinder.FindPaths(virusPosition, gatewaysAfterMove).Any()) break;
+            paths = PathFinder.FindPaths(virusPosition, gateways);
+            if (paths.Count == 0) break;
             
-            virusPosition = GetNextVirusNode(virusPosition, gatewaysAfterMove);
+            virusPosition = GetNextVirusNode(paths);
         }
     }
 
@@ -46,9 +46,9 @@ public class Program
             Console.WriteLine(edge);
     }
     
-    private static DisablingDto DisableCorridor(Graph graph, Node virusPosition, IEnumerable<Node> gateways)
+    private static DisablingDto DisableCorridor(Graph graph, List<SinglyLinkedList<Node>> paths)
     {
-        var (gateway, simpleNode) = GetCorridorToBlock(virusPosition, gateways);
+        var (gateway, simpleNode) = GetCorridorToBlock(paths);
 
         var dto = new DisablingDto { GatewayName = gateway.Name, SimpleNodeName = simpleNode.Name, };
         
@@ -56,15 +56,12 @@ public class Program
         return dto;
     }
 
-    private static Node GetNextVirusNode(Node virusPosition, IEnumerable<Node> gateways)
+    private static Node GetNextVirusNode(List<SinglyLinkedList<Node>> paths)
     {
-        var paths = PathFinder.FindPaths(virusPosition, gateways).ToList();
-        
-        if (!paths.Any()) 
+        if (paths.Count == 0) 
             throw new InvalidOperationException("Вирус не должен был ходить, путей нет.");
 
         return paths
-            .Where(path => path.Length == paths[0].Length)
             .Select(path => path.ToArray())
             .OrderBy(path => path[0].Name)
             .ThenBy(path => path[^2].Name)
@@ -72,15 +69,12 @@ public class Program
             .First();
     }
 
-    private static (Node, Node) GetCorridorToBlock(Node virusPosition, IEnumerable<Node> gateways)
+    private static (Node, Node) GetCorridorToBlock(List<SinglyLinkedList<Node>> paths)
     {
-        var paths = PathFinder.FindPaths(virusPosition, gateways).ToList();
-    
-        if (!paths.Any()) 
+        if (paths.Count == 0) 
             throw new InvalidOperationException("Нечего блокировать, путей нет.");
         
         var result = paths
-            .Where(path => path.Length == paths[0].Length)
             .OrderBy(path => path.Value.Name)
             .ThenBy(path => path.Previous!.Value.Name)
             .First();
@@ -193,25 +187,46 @@ public class Program
     
     public class PathFinder
     {
-        public static IEnumerable<SinglyLinkedList<Node>> FindPaths(Node start, IEnumerable<Node> purposes)
+        public static List<SinglyLinkedList<Node>> FindPaths(Node start, HashSet<Node> purposes)
         {
+            var allFoundPaths = new List<SinglyLinkedList<Node>>();
             var queue = new Queue<SinglyLinkedList<Node>>();
             queue.Enqueue(new SinglyLinkedList<Node>(start));
-            HashSet<Node> visited = [start];
-            var hashSetPurposes = purposes.ToHashSet();
+            var distances = new Dictionary<Node, int> { [start] = 0 };
+            var minDistanceToGateway = int.MaxValue;
 
             while (queue.Count > 0)
             {
-                var node = queue.Dequeue();
-
-                if (hashSetPurposes.Contains(node.Value)) yield return node;
-
-                foreach (var nextNode in node.Value.IncidentNodes.Where(currentNode => !visited.Contains(currentNode)))
+                var path = queue.Dequeue();
+                var currentDistance = path.Length - 1;
+                
+                if (currentDistance > minDistanceToGateway) continue;
+                
+                if (purposes.Contains(path.Value))
                 {
-                    if (!nextNode.IsGateway()) visited.Add(nextNode);
-                    queue.Enqueue(new SinglyLinkedList<Node>(nextNode, node));
+                    if (currentDistance < minDistanceToGateway)
+                    {
+                        minDistanceToGateway = currentDistance;
+                        allFoundPaths.Clear();
+                        allFoundPaths.Add(path);
+                    }
+                    else if (currentDistance == minDistanceToGateway)
+                    {
+                        allFoundPaths.Add(path);
+                    }
+                    continue;
+                }
+                
+                var newDistance = currentDistance + 1;
+                foreach (var nextNode in path.Value.IncidentNodes)
+                {
+                    if (newDistance > distances.GetValueOrDefault(nextNode, int.MaxValue)) continue;
+                    distances[nextNode] = newDistance;
+                    queue.Enqueue(new SinglyLinkedList<Node>(nextNode, path));
                 }
             }
+
+            return allFoundPaths;
         }
     }
 }

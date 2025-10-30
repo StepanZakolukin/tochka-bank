@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class Program
 {
-    public static IEnumerable<string> Solve(List<(string, string)> edges)
+    private static IEnumerable<string> Solve(List<(string, string)> edges)
     {
         var graph = new Graph();
         graph.AddNode("a");

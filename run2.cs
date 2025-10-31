@@ -47,9 +47,8 @@ public class Program
     private static PathToCutDto? DisableCorridor(Graph graph, Node virusPosition, HashSet<Node> gateways)
     {
         var dto = GetCorridorToBlock(virusPosition, gateways);
-        
-        if (dto is not null)
-            graph.Disconnect(dto.GatewayName,  dto.SimpleNodeName);
+
+        if (dto != null) graph.Disconnect(dto.GatewayName,  dto.SimpleNodeName);
         
         return dto;
     }
@@ -57,9 +56,9 @@ public class Program
     private static Node? GetNextVirusNode(Node virusPosition, HashSet<Node> gateways)
     {
         var paths = PathFinder.FindPaths(virusPosition, gateways);
+        var shortestPath = paths.FirstOrDefault();
         
-        if (!paths.Any()) return null;
-        var shortestPath = paths.First();
+        if (shortestPath is null) return null;
 
         return paths
             .Where(path => path.Length == shortestPath.Length)
@@ -73,9 +72,9 @@ public class Program
     private static PathToCutDto? GetCorridorToBlock(Node virusPosition, HashSet<Node> gateways)
     {
         var paths = PathFinder.FindPaths(virusPosition, gateways);
-        if (!paths.Any()) return null;
-        var shortestPath = paths.First();
-        if (shortestPath.Length == 1)
+        var shortestPath = paths.FirstOrDefault();
+        if (shortestPath is null) return null;
+        if (shortestPath.Length == 2)
         {
             return new PathToCutDto
             {
@@ -164,15 +163,15 @@ public class Program
             Name = name;
         }
 
-        public void Connect(Node nodeBase)
+        public void Connect(Node node)
         {
-            _incidentNodes.Add(nodeBase);
-            nodeBase._incidentNodes.Add(this);
+            _incidentNodes.Add(node);
+            node._incidentNodes.Add(this);
         }
 
-        public bool Disconnect(Node nodeBase)
+        public bool Disconnect(Node node)
         {
-            return _incidentNodes.Remove(nodeBase) && nodeBase._incidentNodes.Remove(this);
+            return _incidentNodes.Remove(node) && node._incidentNodes.Remove(this);
         }
         
         public bool IsGateway() => char.IsUpper(Name[0]);

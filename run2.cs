@@ -16,8 +16,6 @@ public class Program
         var gateways = graph.Nodes.Where(node => node.IsGateway()).ToHashSet();
         
         return PathFinder.FindPaths(virusPosition, gateways)
-            .OrderBy(path => path.Length)
-            .ThenBy(path => (path.Value.Name, path.Previous!.Value.Name))
             .Select(path => $"{path.Value.Name}-{path.Previous!.Value.Name}");
     }
 
@@ -93,11 +91,6 @@ public class Program
         {
             _incidentNodes.Add(node);
             node._incidentNodes.Add(this);
-        }
-
-        public bool Disconnect(Node node)
-        {
-            return _incidentNodes.Remove(node) && node._incidentNodes.Remove(this);
         }
 
         public bool IsGateway() => char.IsUpper(Name[0]);

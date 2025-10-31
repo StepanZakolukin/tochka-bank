@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class Program
 {
-    public static IEnumerable<PathToCutDto> Solve(List<EdgeDto> edges)
+    static IEnumerable<PathToCutDto> Solve(List<EdgeDto> edges)
     {
         var graph = new Graph();
         foreach (var edge in edges)

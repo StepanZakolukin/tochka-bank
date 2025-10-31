@@ -8,7 +8,6 @@ public class Program
     public static IEnumerable<PathToCutDto> Solve(List<EdgeDto> edges)
     {
         var graph = new Graph();
-        graph.AddNode("a");
         foreach (var edge in edges)
             graph.Connect(edge.FirstNodeName, edge.SecondNodeName);
 
@@ -121,15 +120,6 @@ public class Program
     {
         private readonly Dictionary<string, Node> _nodes = new();
         public IEnumerable<Node> Nodes => _nodes.Values;
-
-        public bool AddNode(string name)
-        {
-            if (_nodes.ContainsKey(name))
-                return false;
-            
-            _nodes[name] = new Node(name);
-            return true;
-        }
         
         public void Connect(string firstNodeName, string secondNodeName)
         {
